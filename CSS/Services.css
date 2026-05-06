@@ -49,9 +49,26 @@ nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font
 .more-link:hover { text-decoration: underline; }
 
 /* 個人簡介區 */
-.intro-section { text-align: center; margin: 10px 0 40px 0; padding: 30px 20px; background: #fcfcfc; border-radius: 15px; border: 1px solid #f0f0f0;}
-.intro-text { font-size: 1.1rem; color: #555; font-style: italic; white-space: pre-line; margin: 0;}
+.intro-section { 
+    text-align: center; 
+    margin: 0 auto 40px auto; 
+    padding: 20px 0; 
+    border-bottom: 1px double #eee; /* 改用雙線底條增加儀式感 */
+    background: transparent; /* 去除背景色 */
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    border-radius: 0;
+}
 
+.intro-text { 
+    font-size: 1.15rem; /* 稍微放大一點 */
+    letter-spacing: 1px; /* 增加字距增加靈氣感 */
+    color: #444; 
+    font-style: italic; 
+    white-space: pre-line; 
+    margin: 0;
+}
 /* 服務項目卡片 */
 .services { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
 .card { border: 1px solid #eee; padding: 25px; border-radius: 12px; transition: 0.3s; background: #fff; }
