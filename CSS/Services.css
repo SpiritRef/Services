@@ -26,7 +26,6 @@ header {
 .logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary-color); }
 nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font-size: 0.9rem; }
 
-.container { max-width: 900px; margin: auto; padding: 40px 20px; }
 
 /* --- 公告區樣式優化 --- */
 .notice-board { background: #f9f9f9; border-left: 4px solid var(--accent-color); padding: 20px; margin-bottom: 40px; }
@@ -47,23 +46,25 @@ nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font
 /* 顯示全部按鈕 */
 .more-link { font-size: 0.85rem; color: var(--accent-color); text-decoration: none; font-weight: bold; }
 .more-link:hover { text-decoration: underline; }
+/* 讓內容往上提 */
+.container { 
+    max-width: 900px; 
+    margin: auto; 
+    padding: 0 20px 40px 20px; 
+}
 
-/* 個人簡介區 */
+/* 緊湊型個人簡介 */
 .intro-section { 
     text-align: center; 
-    margin: 0 auto 40px auto; 
-    padding: 20px 0; 
-    border-bottom: 1px double #eee; /* 改用雙線底條增加儀式感 */
-    background: transparent; /* 去除背景色 */
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-radius: 0;
+    margin: 0 auto 30px auto; 
+    padding: 15px 0; /* 控制文字與線條的距離 */
+    border-bottom: 1px double #eee;
 }
 
 .intro-text { 
-    font-size: 1.15rem; /* 稍微放大一點 */
-    letter-spacing: 1px; /* 增加字距增加靈氣感 */
+    font-size: 1.1rem; 
+    line-height: 1.5; /* 稍微縮小行間距 */
+    letter-spacing: 1px; 
     color: #444; 
     font-style: italic; 
     white-space: pre-line; 
