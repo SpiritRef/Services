@@ -129,11 +129,27 @@ footer p {
         border-radius: 0;    /* 手機版去掉圓角，看起來更俐落 */
         box-shadow: none;    /* 手機版去掉陰影，節省效能且視覺更乾淨 */
     }
+	.intro-section {
+        padding: 10px 5px !important; /* 減少左右內距，騰出寬度給文字 */
+    }
 	.intro-text {
-        white-space: normal; /* 💡 手機版放棄手動換行，讓瀏覽器根據寬度自動排版 */
-        font-size: 1rem;     /* 💡 稍微縮小字體，避免一行只剩三五個字 */
-        text-align: justify; /* 💡 讓兩端對齊，視覺上更整齊 */
-        padding: 0 10px;    /* 給文字一點呼吸空間 */
+       white-space: pre-line;
+	    font-size: 0.95rem;           /* 💡 再稍微縮小一點點，提高長句的容錯率 */
+	    line-height: 1.6;             /* 稍微放寬行高，靈異故事的文字感會更強 */
+	    letter-spacing: 0.5px;
+	    
+	    /* 置中核心優化 */
+	    text-align: center;           /* 這是手動換行美感的關鍵 */
+	    display: block;               /* 改為 block 配合 width 100% 在手機端更穩健 */
+	    width: 100%;
+	    margin: 0 auto !important;
+	    
+	    padding: 0 5px;               /* 縮小 padding，把更多寬度留給文字，防止意外斷行 */
+	    box-sizing: border-box;       /* 確保 padding 不會撐破 100% 寬度 */
+	    
+	    /* 增加平滑感 */
+	    -webkit-font-smoothing: antialiased; 
+	    word-wrap: break-word;        /* 防止極端情況下文字溢出 */
     }
     /* 調整公告標題，防止過長 */
     .notice-item {
