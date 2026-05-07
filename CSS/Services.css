@@ -1,7 +1,7 @@
 :root {
 	--primary-color: #2c3e50; /* 專業深灰藍 */
 	--accent-color: #c0392b;  /* 神祕暗紅 */
-	--bg-color: #ffffff;
+	--bg-color: #f7f7f7;
 	--text-color: #333;
 }
 body { 
@@ -9,6 +9,7 @@ body {
 	line-height: 1.6; 
 	color: var(--text-color); 
 	background: var(--bg-color); 
+	background-color: #f7f7f7;
 	margin: 0; 
 	padding: 0; 
 }
@@ -52,9 +53,22 @@ nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font
 .more-link:hover { text-decoration: underline; }
 /* 讓內容整體往上提 */
 .container { 
-    max-width: 900px; 
-    margin: auto; 
+	max-width: 1050px;
+	width: 95%;
+    margin: 15px auto; 
     padding: 0 20px 40px 20px !important; 
+	background: #fff;
+	box-shadow: 0 4px 15px rgba(0,0,0,0.05); /* 輕微陰影 */
+    border-radius: 12px;
+    box-sizing: border-box;  /* 確保 padding 不會撐破寬度 */
+}
+@media (max-width: 600px) {
+    .container {
+        width: 100%;         /* 手機版可以考慮佔滿 100%，或維持 95% 看你喜好 */
+        margin: 0 auto;      /* 手機版頂部不需要空隙 */
+        border-radius: 0;    /* 手機版去掉圓角，看起來更俐落 */
+        box-shadow: none;    /* 手機版去掉陰影，節省效能且視覺更乾淨 */
+    }
 }
 
 /* 個人簡介區塊：壓縮內外距 */
