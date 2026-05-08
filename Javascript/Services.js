@@ -24,8 +24,8 @@ async function initApp() {
             JsonServicePath = config.JsonService;
             // 💡 第二階段：補抓靜態 JSON (如果快取是空的)
             const loadTasks = [];
-            if (allNotices.length === 0 && JsonNoticePath) {
-                loadTasks.push(loadStaticData(JsonNoticePath, 'notice'));
+            if (allNotices.length === 0 && JsonDataPath) {
+                loadTasks.push(loadStaticData(JsonDataPath, 'notice'));
             }
             if (allServices.length === 0 && JsonServicePath) {
                 loadTasks.push(loadStaticData(JsonServicePath, 'service'));
