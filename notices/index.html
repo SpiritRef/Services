@@ -24,7 +24,8 @@
 <body>
 
 <div class="list-container">
-	<a href="./index.html" class="back-home">⬅ 返回首頁</a>
+	<!-- 修改返回路徑 -->
+	<a href="../index.html" class="back-home">⬅ 返回首頁</a>
 	<h1>所有公告記錄</h1>
 
 	<div class="controls">
@@ -47,12 +48,15 @@
 	</div>
 </div>
 
-<script>
-	// 💡 建議將 API 網址移至此處統一管理
-	const API_BASE = "https://script.google.com/macros/s/AKfycbwpmFBBbEt8y9qQETftQktjuAiI1UQKm6Ro_rtGCHTaWRANiFngtDG7UWXnCvHMQbNgdg/exec";
+<!-- 💡 使用 module 形式引入 script 以支援 import -->
+<script type="module">
+	import { getIni } from '../Javascript/API.js'; // 確保路徑指向你的 API.js
+
+	let API_BASE = "";
 	let allNotices = [];
 	let currentPage = 1;
 	let pageSize = 10;
+	const iniPath = '../settings/Services.ini'; // 指向你的設定檔
 
 	/**
 	 * 啟動與資料讀取
@@ -65,26 +69,44 @@
 			updateUI();
 		}
 
-		// 2. 💡 背景抓取最新資料 (使用 type=notice 減少傳輸量)
+		// 2. 💡 讀取 INI 設定獲取 API 網址
 		try {
-			const res = await fetch(`${API_BASE}?type=notice`);
+			const config = await getIni(iniPath);
+			if (config && config.NOVEL_API_URL) {
+				// 解析 Base64
+				API_BASE = config.NOVEL_API_URL.startsWith("http") ? config.NOVEL_API_URL : atob(config.NOVEL_API_URL);
+				await fetchRemoteData(cache);
+			} else {
+				throw new Error("INI 配置錯誤");
+			}
+		} catch (e) {
+			console.error("初始化失敗", e);
+			if (allNotices.length === 0) {
+				document.getElementById('list-content').innerText = "系統初始化失敗，請稍後再試。";
+			}
+		}
+	}
+
+	/**
+	 * 背景抓取遠端資料
+	 */
+	async function fetchRemoteData(cache) {
+		try {
+			const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=notice`);
 			const data = await res.json();
 			
-			// 3. 前端過濾 (雙重保險：即便 GAS 還沒更新 type 功能也能運作)
+			// 前端過濾 (雙重保險)
 			const filtered = data.filter(i => String(i["標題"]).includes("公告"))
 								 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
 
-			// 4. 如果資料有變動才更新 UI
+			// 如果資料有變動才更新 UI
 			if (JSON.stringify(filtered) !== cache) {
 				allNotices = filtered;
 				localStorage.setItem('cache_notices', JSON.stringify(filtered));
 				updateUI();
 			}
 		} catch(e) {
-			console.error("更新失敗", e);
-			if (allNotices.length === 0) {
-				document.getElementById('list-content').innerText = "暫時無法連線至靈界資料庫，請稍後再試。";
-			}
+			console.error("遠端抓取失敗", e);
 		}
 	}
 
@@ -116,17 +138,18 @@
 		document.getElementById('nextBtn').disabled = end >= allNotices.length;
 	}
 
-	function changePageSize() {
+	// 暴露給 window 的全域函式 (因為在 module 模式下)
+	window.changePageSize = () => {
 		pageSize = parseInt(document.getElementById('pageSize').value);
 		currentPage = 1;
 		render();
-	}
+	};
 
-	function prevPage() { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } }
-	function nextPage() { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } }
+	window.prevPage = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
+	window.nextPage = () => { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } };
 
 	// 啟動程式
-	init();
+	window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
