@@ -83,8 +83,8 @@ function processServiceData(data) {
     // 💡 任務 2：處理 FAQ (丟入 Microtask)
     Promise.resolve().then(() => {
         allFAQs = data.filter(item => {
-            const title = String(item["服務名稱"] || item["標題"] || "");
-            return title.includes("問");
+            const title = String(item["分類"] || item["標題"] || "");
+            return title.includes("常見問題");
         });
         renderFAQ();
         console.log("❓ FAQ 已渲染");
