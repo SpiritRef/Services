@@ -3,74 +3,80 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>所有公告記錄 | 鬼磕頭</title>
+	<title>常見問題紀錄 | 鬼磕頭</title>
 	<style>
-		body { font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #333; line-height: 1.6; }
-		.list-container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-		h1 { border-bottom: 2px solid #c0392b; padding-bottom: 10px; font-size: 1.5rem; color: #333; }
+		/* 💡 整合 Services.css 風格並微調 */
+		body { font-family: sans-serif; background: #121212; padding: 20px; color: #eee; line-height: 1.6; margin: 0; }
+		.list-container { max-width: 850px; margin: auto; background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
 		
+		h1 { border-bottom: 2px solid #ffc107; padding-bottom: 10px; font-size: 1.6rem; color: #ffc107; text-align: center; }
+		
+		/* 控制列樣式 */
 		.controls { 
 			display: flex; 
 			justify-content: space-between; 
 			align-items: center; 
-			margin-bottom: 20px; 
-			background: #f9f9f9; 
-			padding: 10px; 
-			border-radius: 5px; 
+			margin-bottom: 25px; 
+			background: #2a2a2a; 
+			padding: 12px 20px; 
+			border-radius: 8px; 
 			font-size: 0.9rem;
-			flex-wrap: wrap; 
-			gap: 10px;
+			color: #bbb;
 		}
 		
-		.item { padding: 15px 0; border-bottom: 1px solid #eee; white-space: pre-line; word-wrap: break-word; }
-		.item:last-child { border-bottom: none; }
-		.date { color: #c0392b; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+		/* 問答項目樣式 */
+		.faq-item { padding: 20px 0; border-bottom: 1px solid #333; }
+		.faq-item:last-child { border-bottom: none; }
 		
-		.pagination { margin-top: 20px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
-		.page-btn { padding: 6px 14px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
-		.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-		.back-home { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #666; font-size: 0.9rem; }
+		.question { color: #ffc107; font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; display: flex; gap: 10px; }
+		.answer { color: #ddd; font-size: 1rem; padding-left: 32px; white-space: pre-line; border-left: 2px solid #444; margin-left: 5px; }
+		
+		/* 分頁按鈕 */
+		.pagination { margin-top: 30px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+		.page-btn { padding: 8px 16px; border: 1px solid #444; background: #2a2a2a; color: #fff; cursor: pointer; border-radius: 6px; transition: 0.3s; }
+		.page-btn:hover:not(:disabled) { background: #ffc107; color: #000; border-color: #ffc107; }
+		.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+		
+		.back-home { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; text-decoration: none; color: #ffc107; font-size: 0.95rem; font-weight: bold; transition: 0.3s; }
+		.back-home:hover { opacity: 0.8; }
 
-		.jump-select { padding: 4px; border-radius: 4px; border: 1px solid #ccc; background: #fff; }
+		select { padding: 6px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; outline: none; }
 
 		@media (max-width: 600px) {
 			body { padding: 10px; }
-			.list-container { padding: 15px; }
-			h1 { font-size: 1.3rem; }
-			.controls { flex-direction: column; align-items: flex-start; }
-			.pagination { gap: 5px; }
+			.list-container { padding: 20px 15px; }
+			.controls { flex-direction: column; gap: 10px; text-align: center; }
+			.answer { padding-left: 15px; }
 		}
 	</style>
 </head>
 <body>
 
 <div class="list-container">
-	<a href="../index.html" class="back-home">⬅ 返回首頁</a>
-	<h1>所有公告記錄</h1>
+	<a href="../services/" class="back-home">⬅ 返回服務頁面</a>
+	<h1>常見問題 FAQ 紀錄</h1>
 
 	<div class="controls">
 		<div>每頁顯示：
 			<select id="pageSize" onchange="changePageSize()">
-				<option value="10">10 條</option>
-				<option value="20">20 條</option>
-				<option value="50">50 條</option>
+				<option value="10">10 筆</option>
+				<option value="20" selected>20 筆</option>
+				<option value="50">50 筆</option>
 			</select>
 		</div>
 		<div id="totalCount">共 0 筆</div>
 	</div>
 
-	<div id="list-content">載入中...</div>
+	<div id="list-content">正在感應靈界問答...</div>
 
 	<div class="pagination">
 		<button id="prevBtn" class="page-btn" onclick="prevPage()">上一頁</button>
 		
-		<span>跳至第 
-			<select id="pageJump" class="jump-select" onchange="jumpToPage()">
-				<option value="1">1</option>
-			</select> 頁
+		<span style="font-size: 0.9rem;">第 
+			<select id="pageJump" onchange="jumpToPage()"></select> 頁
 		</span>
 
-		<span id="pageInfo">第 1 頁</span>
+		<span id="pageInfo" style="font-size: 0.9rem; color: #888;"></span>
 		<button id="nextBtn" class="page-btn" onclick="nextPage()">下一頁</button>
 	</div>
 </div>
@@ -79,142 +85,134 @@
 	import { getIni } from '../Javascript/API.js';
 
 	let API_BASE = "";
-	let JSON_PATH = ""; // 💡 儲存 INI 裡的靜態 JSON 路徑
-	let allNotices = [];
+	let JSON_PATH = ""; 
+	let allFAQs = [];
 	let currentPage = 1;
-	let pageSize = 10;
+	let pageSize = 20; // 預設 20 筆
 	const iniPath = '../settings/Services.ini';
 
 	async function init() {
-		// 1. 優先讀取快取
-		const cache = localStorage.getItem('cache_notices');
+		// 1. 優先讀取快取 (快取與 Service 頁面共用)
+		const cache = localStorage.getItem('cache_services');
 		if (cache) {
-			allNotices = JSON.parse(cache);
+			allFAQs = filterFAQ(JSON.parse(cache));
 			updateUI();
 		}
 
 		try {
 			const config = await getIni(iniPath);
 			if (config) {
-				// 💡 讀取 JSON 備份路徑 (例如: ../Data/Notices.json)
-				JSON_PATH = config.JsonNotice || config.JsonData; 
+				JSON_PATH = config.JsonService || config.JsonData; 
 				
-				// 💡 如果快取沒資料，立刻先抓靜態 JSON
-				if (allNotices.length === 0 && JSON_PATH) {
+				// 2. 如果快取沒資料，抓取靜態 JSON
+				if (allFAQs.length === 0 && JSON_PATH) {
 					await fetchStaticJson();
 				}
 
-				// 2. 解析 API 網址並啟動背景同步
-				if (config.NOVEL_API_URL) {
-					API_BASE = config.NOVEL_API_URL.startsWith("http") ? config.NOVEL_API_URL : atob(config.NOVEL_API_URL);
+				// 3. 背景同步最新 API 資料
+				if (config.SERVICE_API_URL) {
+					API_BASE = config.SERVICE_API_URL.startsWith("http") ? config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
 					fetchRemoteData(cache); 
 				}
 			}
-		} catch (e) {
-			console.error("初始化失敗", e);
-		}
+		} catch (e) { console.error("FAQ 初始化失敗", e); }
 	}
 
-	/**
-	 * 💡 核心邏輯：抓取靜態 JSON 備份
-	 */
+	function filterFAQ(data) {
+		const raw = Array.isArray(data) ? data : (data.services || []);
+		// 篩選標題包含「問」的項目
+		return raw.filter(i => String(i["服務名稱"] || i["標題"] || "").includes("問"));
+	}
+
 	async function fetchStaticJson() {
 		try {
-			// 處理多一層 ghoststory 的路徑問題
-			let finalPath = JSON_PATH;
-			if (window.location.pathname.includes('/article/') || window.location.pathname.includes('/ghoststory/')) {
-				finalPath = JSON_PATH.startsWith('../') ? JSON_PATH : '../' + JSON_PATH;
-			}
-
-			const res = await fetch(finalPath);
+			const res = await fetch(`../${JSON_PATH}`);
 			if (res.ok) {
 				const data = await res.json();
-				// 過濾與排序
-				const filtered = data.filter(i => String(i["標題"] || "").includes("公告"))
-									 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
-				
-				allNotices = filtered;
-				console.log("📄 已載入靜態 JSON 公告備份");
+				allFAQs = filterFAQ(data);
+				console.log("📄 載入靜態 JSON 備份");
 				updateUI();
 			}
-		} catch (e) {
-			console.warn("無法讀取靜態 JSON:", e);
-		}
+		} catch (e) { console.warn("無法讀取靜態 JSON"); }
 	}
 
 	async function fetchRemoteData(cache) {
 		try {
-			const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=notice`);
+			const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=service`);
 			const data = await res.json();
-			const filtered = data.filter(i => String(i["標題"]).includes("公告"))
-								 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
+			const filtered = filterFAQ(data);
 
-			if (JSON.stringify(filtered) !== cache) {
-				allNotices = filtered;
+			if (JSON.stringify(filtered) !== JSON.stringify(filterFAQ(JSON.parse(cache || '[]')))) {
+				allFAQs = filtered;
 				updateUI();
-				setTimeout(() => {
-					localStorage.setItem('cache_notices', JSON.stringify(filtered));
-				}, 100);
+				localStorage.setItem('cache_services', JSON.stringify(data));
 			}
-		} catch(e) { console.error("API 同步失敗", e); }
+		} catch(e) { console.error("API 同步失敗"); }
 	}
 
 	function updateUI() {
-		document.getElementById('totalCount').innerText = `共 ${allNotices.length} 筆`;
-		updateJumpSelect();
-		render();
-	}
-
-	function updateJumpSelect() {
-		const select = document.getElementById('pageJump');
-		const maxPage = Math.ceil(allNotices.length / pageSize) || 1;
+		document.getElementById('totalCount').innerText = `共 ${allFAQs.length} 筆`;
+		const maxPage = Math.ceil(allFAQs.length / pageSize) || 1;
+		
+		// 更新跳頁選單
 		let options = "";
 		for (let i = 1; i <= maxPage; i++) {
 			options += `<option value="${i}" ${i === currentPage ? 'selected' : ''}>${i}</option>`;
 		}
-		select.innerHTML = options;
+		document.getElementById('pageJump').innerHTML = options;
+		document.getElementById('pageInfo').innerText = `/ ${maxPage} 頁`;
+		
+		render();
 	}
 
 	function render() {
-		if (allNotices.length === 0) return;
+		const contentBox = document.getElementById('list-content');
+		if (allFAQs.length === 0) {
+			contentBox.innerHTML = '<div style="text-align:center; padding:50px; color:#888;">目前暫無問答紀錄。</div>';
+			return;
+		}
+
 		const start = (currentPage - 1) * pageSize;
 		const end = start + pageSize;
-		const pagedData = allNotices.slice(start, end);
+		const pagedData = allFAQs.slice(start, end);
 
-		document.getElementById('list-content').innerHTML = pagedData.map(i => {
-			const dateStr = i["發佈日期"] ? new Date(i["發佈日期"]).toLocaleDateString() : "近期";
+		contentBox.innerHTML = pagedData.map((item, index) => {
+			// 💡 計算全站 Q 編號：(當前頁-1)*每頁大小 + 索引 + 1
+			const qNumber = start + index + 1;
+			const qText = item["服務名稱"] || item["標題"] || "常見問題";
+			const aText = item["服務介紹"] || item["貼文內容"] || item["內容"] || "暫無回覆。";
+			
 			return `
-				<div class="item">
-					<div class="date">[${dateStr}]</div>
-					<div class="content">${i["貼文內容"] || i["內容"]}</div>
+				<div class="faq-item">
+					<div class="question">
+						<span>Q${qNumber}.</span>
+						<span>${qText}</span>
+					</div>
+					<div class="answer">${aText}</div>
 				</div>
 			`;
 		}).join('');
 
-		const maxPage = Math.ceil(allNotices.length / pageSize) || 1;
-		document.getElementById('pageInfo').innerText = ` / ${maxPage} 頁`;
+		// 更新按鈕狀態
 		document.getElementById('prevBtn').disabled = currentPage === 1;
-		document.getElementById('nextBtn').disabled = end >= allNotices.length;
-		
-		document.getElementById('pageJump').value = currentPage;
+		document.getElementById('nextBtn').disabled = end >= allFAQs.length;
 	}
 
+	// 💡 分頁功能與切換
 	window.changePageSize = () => {
 		pageSize = parseInt(document.getElementById('pageSize').value);
 		currentPage = 1;
-		updateJumpSelect();
-		render();
+		updateUI();
 	};
 
 	window.jumpToPage = () => {
-		const select = document.getElementById('pageJump');
-		currentPage = parseInt(select.value);
+		currentPage = parseInt(document.getElementById('pageJump').value);
 		render();
-		window.scrollTo(0, 0);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
-	window.prevPage = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
-	window.nextPage = () => { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } };
+	window.prevPage = () => { if(currentPage > 1) { currentPage--; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+	window.nextPage = () => { if(currentPage * pageSize < allFAQs.length) { currentPage++; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
 
 	window.addEventListener('DOMContentLoaded', init);
 </script>
