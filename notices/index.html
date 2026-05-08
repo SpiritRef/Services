@@ -5,26 +5,47 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>所有公告記錄 | 鬼磕頭</title>
 	<style>
-		body { font-family: sans-serif; background: #1a1a1a; padding: 20px; color: #eee; line-height: 1.6; }
-		.list-container { max-width: 800px; margin: auto; background: #222; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-		h1 { border-bottom: 2px solid #c0392b; padding-bottom: 10px; font-size: 1.5rem; color: #fff; }
-		.controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #2a2a2a; padding: 10px; border-radius: 5px; font-size: 0.9rem; }
-		.item { padding: 20px 0; border-bottom: 1px solid #333; white-space: pre-line; }
+		/* 恢復為淺色風格 */
+		body { font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #333; line-height: 1.6; }
+		.list-container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+		h1 { border-bottom: 2px solid #c0392b; padding-bottom: 10px; font-size: 1.5rem; color: #333; }
+		
+		/* 控制列：在電腦版橫排，手機版自動換行 */
+		.controls { 
+			display: flex; 
+			justify-content: space-between; 
+			align-items: center; 
+			margin-bottom: 20px; 
+			background: #f9f9f9; 
+			padding: 10px; 
+			border-radius: 5px; 
+			font-size: 0.9rem;
+			flex-wrap: wrap; /* 支援換行 */
+			gap: 10px;
+		}
+		
+		.item { padding: 15px 0; border-bottom: 1px solid #eee; white-space: pre-line; word-wrap: break-word; }
 		.item:last-child { border-bottom: none; }
-		.date { color: #c0392b; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
-		.pagination { margin-top: 20px; display: flex; gap: 10px; justify-content: center; align-items: center; }
-		.page-btn { padding: 8px 16px; border: 1px solid #444; background: #333; color: #fff; cursor: pointer; border-radius: 4px; transition: 0.3s; }
-		.page-btn:hover:not(:disabled) { background: #444; }
-		.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-		.back-home { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #aaa; font-size: 0.9rem; transition: 0.3s; }
-		.back-home:hover { color: #fff; }
-		select { background: #333; color: #fff; border: 1px solid #444; padding: 2px 5px; }
+		.date { color: #888; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+		
+		.pagination { margin-top: 20px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
+		.page-btn { padding: 6px 14px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
+		.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+		.back-home { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #666; font-size: 0.9rem; }
+
+		/* 📱 手機樣式優化 */
+		@media (max-width: 600px) {
+			body { padding: 10px; }
+			.list-container { padding: 15px; }
+			h1 { font-size: 1.3rem; }
+			.controls { flex-direction: column; align-items: flex-start; }
+			.page-btn { padding: 8px 12px; font-size: 0.9rem; } /* 增大點擊面積 */
+		}
 	</style>
 </head>
 <body>
 
 <div class="list-container">
-	<!-- 修改返回路徑 -->
 	<a href="../index.html" class="back-home">⬅ 返回首頁</a>
 	<h1>所有公告記錄</h1>
 
@@ -36,7 +57,7 @@
 				<option value="50">50 條</option>
 			</select>
 		</div>
-		<div id="totalCount">正在讀取紀錄...</div>
+		<div id="totalCount">共 0 筆</div>
 	</div>
 
 	<div id="list-content">載入中...</div>
@@ -48,66 +69,52 @@
 	</div>
 </div>
 
-<!-- 💡 使用 module 形式引入 script 以支援 import -->
 <script type="module">
-	import { getIni } from '../Javascript/API.js'; // 確保路徑指向你的 API.js
+	import { getIni } from '../Javascript/API.js';
 
 	let API_BASE = "";
 	let allNotices = [];
 	let currentPage = 1;
 	let pageSize = 10;
-	const iniPath = '../settings/Services.ini'; // 指向你的設定檔
+	const iniPath = '../settings/Services.ini';
 
-	/**
-	 * 啟動與資料讀取
-	 */
 	async function init() {
-		// 1. 💡 優先讀取快取 (秒開體驗)
 		const cache = localStorage.getItem('cache_notices');
 		if (cache) {
 			allNotices = JSON.parse(cache);
 			updateUI();
 		}
 
-		// 2. 💡 讀取 INI 設定獲取 API 網址
 		try {
 			const config = await getIni(iniPath);
 			if (config && config.NOVEL_API_URL) {
-				// 解析 Base64
 				API_BASE = config.NOVEL_API_URL.startsWith("http") ? config.NOVEL_API_URL : atob(config.NOVEL_API_URL);
 				await fetchRemoteData(cache);
-			} else {
-				throw new Error("INI 配置錯誤");
 			}
 		} catch (e) {
 			console.error("初始化失敗", e);
-			if (allNotices.length === 0) {
-				document.getElementById('list-content').innerText = "系統初始化失敗，請稍後再試。";
-			}
 		}
 	}
 
-	/**
-	 * 背景抓取遠端資料
-	 */
 	async function fetchRemoteData(cache) {
 		try {
 			const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=notice`);
 			const data = await res.json();
 			
-			// 前端過濾 (雙重保險)
 			const filtered = data.filter(i => String(i["標題"]).includes("公告"))
 								 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
 
-			// 如果資料有變動才更新 UI
+			// 先處理前 10 筆顯示 (漸進式渲染)
 			if (JSON.stringify(filtered) !== cache) {
 				allNotices = filtered;
-				localStorage.setItem('cache_notices', JSON.stringify(filtered));
 				updateUI();
+				
+				// 背景慢慢存入快取，不阻塞主線程
+				setTimeout(() => {
+					localStorage.setItem('cache_notices', JSON.stringify(filtered));
+				}, 100);
 			}
-		} catch(e) {
-			console.error("遠端抓取失敗", e);
-		}
+		} catch(e) { console.error(e); }
 	}
 
 	function updateUI() {
@@ -117,7 +124,6 @@
 
 	function render() {
 		if (allNotices.length === 0) return;
-
 		const start = (currentPage - 1) * pageSize;
 		const end = start + pageSize;
 		const pagedData = allNotices.slice(start, end);
@@ -127,7 +133,7 @@
 			return `
 				<div class="item">
 					<div class="date">[${dateStr}]</div>
-					<div>${i["貼文內容"] || i["內容"]}</div>
+					<div class="content">${i["貼文內容"] || i["內容"]}</div>
 				</div>
 			`;
 		}).join('');
@@ -138,17 +144,15 @@
 		document.getElementById('nextBtn').disabled = end >= allNotices.length;
 	}
 
-	// 暴露給 window 的全域函式 (因為在 module 模式下)
+	// 暴露函式至全域
 	window.changePageSize = () => {
 		pageSize = parseInt(document.getElementById('pageSize').value);
 		currentPage = 1;
 		render();
 	};
-
 	window.prevPage = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
 	window.nextPage = () => { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } };
 
-	// 啟動程式
 	window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
