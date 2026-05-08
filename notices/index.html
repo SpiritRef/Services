@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>所有公告記錄 | 鬼磕頭</title>
+	<style>
+		body { font-family: sans-serif; background: #1a1a1a; padding: 20px; color: #eee; line-height: 1.6; }
+		.list-container { max-width: 800px; margin: auto; background: #222; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+		h1 { border-bottom: 2px solid #c0392b; padding-bottom: 10px; font-size: 1.5rem; color: #fff; }
+		.controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #2a2a2a; padding: 10px; border-radius: 5px; font-size: 0.9rem; }
+		.item { padding: 20px 0; border-bottom: 1px solid #333; white-space: pre-line; }
+		.item:last-child { border-bottom: none; }
+		.date { color: #c0392b; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+		.pagination { margin-top: 20px; display: flex; gap: 10px; justify-content: center; align-items: center; }
+		.page-btn { padding: 8px 16px; border: 1px solid #444; background: #333; color: #fff; cursor: pointer; border-radius: 4px; transition: 0.3s; }
+		.page-btn:hover:not(:disabled) { background: #444; }
+		.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+		.back-home { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #aaa; font-size: 0.9rem; transition: 0.3s; }
+		.back-home:hover { color: #fff; }
+		select { background: #333; color: #fff; border: 1px solid #444; padding: 2px 5px; }
+	</style>
+</head>
+<body>
+
+<div class="list-container">
+	<a href="./index.html" class="back-home">⬅ 返回首頁</a>
+	<h1>所有公告記錄</h1>
+
+	<div class="controls">
+		<div>每頁顯示：
+			<select id="pageSize" onchange="changePageSize()">
+				<option value="10">10 條</option>
+				<option value="20">20 條</option>
+				<option value="50">50 條</option>
+			</select>
+		</div>
+		<div id="totalCount">正在讀取紀錄...</div>
+	</div>
+
+	<div id="list-content">載入中...</div>
+
+	<div class="pagination">
+		<button id="prevBtn" class="page-btn" onclick="prevPage()">上一頁</button>
+		<span id="pageInfo">第 1 頁</span>
+		<button id="nextBtn" class="page-btn" onclick="nextPage()">下一頁</button>
+	</div>
+</div>
+
+<script>
+	// 💡 建議將 API 網址移至此處統一管理
+	const API_BASE = "https://script.google.com/macros/s/AKfycbwpmFBBbEt8y9qQETftQktjuAiI1UQKm6Ro_rtGCHTaWRANiFngtDG7UWXnCvHMQbNgdg/exec";
+	let allNotices = [];
+	let currentPage = 1;
+	let pageSize = 10;
+
+	/**
+	 * 啟動與資料讀取
+	 */
+	async function init() {
+		// 1. 💡 優先讀取快取 (秒開體驗)
+		const cache = localStorage.getItem('cache_notices');
+		if (cache) {
+			allNotices = JSON.parse(cache);
+			updateUI();
+		}
+
+		// 2. 💡 背景抓取最新資料 (使用 type=notice 減少傳輸量)
+		try {
+			const res = await fetch(`${API_BASE}?type=notice`);
+			const data = await res.json();
+			
+			// 3. 前端過濾 (雙重保險：即便 GAS 還沒更新 type 功能也能運作)
+			const filtered = data.filter(i => String(i["標題"]).includes("公告"))
+								 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
+
+			// 4. 如果資料有變動才更新 UI
+			if (JSON.stringify(filtered) !== cache) {
+				allNotices = filtered;
+				localStorage.setItem('cache_notices', JSON.stringify(filtered));
+				updateUI();
+			}
+		} catch(e) {
+			console.error("更新失敗", e);
+			if (allNotices.length === 0) {
+				document.getElementById('list-content').innerText = "暫時無法連線至靈界資料庫，請稍後再試。";
+			}
+		}
+	}
+
+	function updateUI() {
+		document.getElementById('totalCount').innerText = `共 ${allNotices.length} 筆`;
+		render();
+	}
+
+	function render() {
+		if (allNotices.length === 0) return;
+
+		const start = (currentPage - 1) * pageSize;
+		const end = start + pageSize;
+		const pagedData = allNotices.slice(start, end);
+
+		document.getElementById('list-content').innerHTML = pagedData.map(i => {
+			const dateStr = i["發佈日期"] ? new Date(i["發佈日期"]).toLocaleDateString() : "近期";
+			return `
+				<div class="item">
+					<div class="date">[${dateStr}]</div>
+					<div>${i["貼文內容"] || i["內容"]}</div>
+				</div>
+			`;
+		}).join('');
+
+		const maxPage = Math.ceil(allNotices.length / pageSize) || 1;
+		document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${maxPage} 頁`;
+		document.getElementById('prevBtn').disabled = currentPage === 1;
+		document.getElementById('nextBtn').disabled = end >= allNotices.length;
+	}
+
+	function changePageSize() {
+		pageSize = parseInt(document.getElementById('pageSize').value);
+		currentPage = 1;
+		render();
+	}
+
+	function prevPage() { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } }
+	function nextPage() { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } }
+
+	// 啟動程式
+	init();
+</script>
+</body>
+</html>
