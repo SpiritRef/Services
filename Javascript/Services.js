@@ -2,6 +2,8 @@ import { getIni } from './API.js';
 
 let NOVEL_API_URL = "";    // 用於獲取公告 (來自小說庫試算表)
 let SERVICE_API_URL = "";  // 用於獲取服務項目 (來自服務試算表)
+let JsonDataPath = "";     // 💡 新增：GitHub JSON 路徑
+JsonService="Data/Services.json"
 const iniPath = 'settings/Services.ini'; 
 
 let allNotices = [];
@@ -17,15 +19,26 @@ async function initApp() {
     try {
         const config = await getIni(iniPath);
         
-        if (config && config.NOVEL_API_URL && config.SERVICE_API_URL) {
+        if (config) {
+            JsonDataPath = config.JsonData;
+            JsonServicePath = config.JsonService;
+            // 💡 第二階段：補抓靜態 JSON (如果快取是空的)
+            const loadTasks = [];
+            if (allNotices.length === 0 && JsonNoticePath) {
+                loadTasks.push(loadStaticData(JsonNoticePath, 'notice'));
+            }
+            if (allServices.length === 0 && JsonServicePath) {
+                loadTasks.push(loadStaticData(JsonServicePath, 'service'));
+            }
+            if (loadTasks.length > 0) await Promise.all(loadTasks);
             // 解析 Base64 API 網址 (若非 http 開頭則解碼)
-            NOVEL_API_URL = config.NOVEL_API_URL.startsWith("http") ? config.NOVEL_API_URL : atob(config.NOVEL_API_URL);
-            SERVICE_API_URL = config.SERVICE_API_URL.startsWith("http") ? config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
-            
-            console.log("✅ 系統設定載入成功，啟動遠端同步...");
-            
-            // 💡 第二階段：執行背景更新
-            await fetchRemoteData();
+            if (config.NOVEL_API_URL && config.SERVICE_API_URL) {
+                NOVEL_API_URL = config.NOVEL_API_URL.startsWith("http") ? config.NOVEL_API_URL : atob(config.NOVEL_API_URL);
+                SERVICE_API_URL = config.SERVICE_API_URL.startsWith("http") ? config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
+                console.log("✅ 系統設定載入成功，啟動遠端同步...");
+                // 💡 第三階段：執行背景 API 更新 (確保資料是最新的)
+                fetchRemoteData();
+            }
         } else {
             throw new Error("INI 設定檔缺少關鍵 API 網址");
         }
@@ -33,7 +46,6 @@ async function initApp() {
         console.error("❌ 初始化失敗:", e);
     }
 }
-
 /**
  * 載入本地快取資料
  */
@@ -50,49 +62,56 @@ function loadCache() {
         renderServices(allServices);
     }
 }
+async function loadStaticData(path, type) {
+    try {
+        const res = await fetch(path);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        console.log(`📄 成功讀取靜態 ${type} JSON`);
+        
+        if (type === 'notice') {
+            allNotices = Array.isArray(data) ? data : (data.notices || []);
+            renderNotices();
+        } else if (type === 'service'){
+            allServices = Array.isArray(data) ? data : (data.services || []);
+            renderServices(allServices);
+        }
+    } catch (e) {
+        console.warn(`⚠️ 無法讀取 ${type} JSON:`, e);
+    }
+}
 
 /**
  * 從不同的 API 獲取資料並進行過濾
  */
 async function fetchRemoteData() {
     try {
-        // 同時請求兩個不同的 URL
-        // 加上 type 參數以便未來 Apps Script 更新後能自動提速
         const [noticeRes, serviceRes] = await Promise.allSettled([
             fetch(`${NOVEL_API_URL}${NOVEL_API_URL.includes('?') ? '&' : '?'}type=notice`).then(res => res.json()),
             fetch(`${SERVICE_API_URL}${SERVICE_API_URL.includes('?') ? '&' : '?'}type=service`).then(res => res.json())
         ]);
 
-        // 1. 處理公告更新 (來自 NOVEL_API_URL)
         if (noticeRes.status === 'fulfilled') {
-            let newData = noticeRes.value;
-            
-            // 前端防線：過濾標題含「公告」的資料 (相容舊版 GAS)
-            newData = newData.filter(item => String(item["標題"] || "").includes("公告"));
-            
-            // 排序：日期由新到舊
+            let newData = noticeRes.value.filter(item => String(item["標題"] || "").includes("公告"));
             newData.sort((a, b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
 
             if (JSON.stringify(newData) !== localStorage.getItem('cache_notices')) {
                 allNotices = newData;
                 localStorage.setItem('cache_notices', JSON.stringify(newData));
                 renderNotices();
-                console.log("📢 公告區已更新至最新狀態");
+                console.log("📢 公告區 API 同步完成");
             }
         }
 
-        // 2. 處理服務項目更新 (來自 SERVICE_API_URL)
         if (serviceRes.status === 'fulfilled') {
-            let newServices = serviceRes.value;
-            
-            // 前端防線：排除標題含「公告」的資料，保留純服務內容
-            newServices = newServices.filter(item => !String(item["標題"] || "").includes("公告"));
+            let newServices = serviceRes.value.filter(item => !String(item["標題"] || "").includes("公告"));
 
             if (JSON.stringify(newServices) !== localStorage.getItem('cache_services')) {
                 allServices = newServices;
                 localStorage.setItem('cache_services', JSON.stringify(newServices));
                 renderServices(allServices);
-                console.log("🛠️ 服務項目已更新至最新狀態");
+                console.log("🛠️ 服務項目 API 同步完成");
             }
         }
     } catch (e) {
