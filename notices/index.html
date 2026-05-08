@@ -5,12 +5,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>所有公告記錄 | 鬼磕頭</title>
 	<style>
-		/* 恢復為淺色風格 */
 		body { font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #333; line-height: 1.6; }
 		.list-container { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
 		h1 { border-bottom: 2px solid #c0392b; padding-bottom: 10px; font-size: 1.5rem; color: #333; }
 		
-		/* 控制列：在電腦版橫排，手機版自動換行 */
 		.controls { 
 			display: flex; 
 			justify-content: space-between; 
@@ -20,26 +18,28 @@
 			padding: 10px; 
 			border-radius: 5px; 
 			font-size: 0.9rem;
-			flex-wrap: wrap; /* 支援換行 */
+			flex-wrap: wrap; 
 			gap: 10px;
 		}
 		
 		.item { padding: 15px 0; border-bottom: 1px solid #eee; white-space: pre-line; word-wrap: break-word; }
 		.item:last-child { border-bottom: none; }
-		.date { color: #888; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
+		.date { color: #c0392b; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
 		
 		.pagination { margin-top: 20px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
 		.page-btn { padding: 6px 14px; border: 1px solid #ccc; background: #fff; cursor: pointer; border-radius: 4px; }
 		.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 		.back-home { display: inline-block; margin-bottom: 20px; text-decoration: none; color: #666; font-size: 0.9rem; }
 
-		/* 📱 手機樣式優化 */
+		/* 跳頁選單樣式 */
+		.jump-select { padding: 4px; border-radius: 4px; border: 1px solid #ccc; background: #fff; }
+
 		@media (max-width: 600px) {
 			body { padding: 10px; }
 			.list-container { padding: 15px; }
 			h1 { font-size: 1.3rem; }
 			.controls { flex-direction: column; align-items: flex-start; }
-			.page-btn { padding: 8px 12px; font-size: 0.9rem; } /* 增大點擊面積 */
+			.pagination { gap: 5px; }
 		}
 	</style>
 </head>
@@ -64,6 +64,14 @@
 
 	<div class="pagination">
 		<button id="prevBtn" class="page-btn" onclick="prevPage()">上一頁</button>
+		
+		<!-- 💡 新增：跳頁選單 -->
+		<span>跳至第 
+			<select id="pageJump" class="jump-select" onchange="jumpToPage()">
+				<option value="1">1</option>
+			</select> 頁
+		</span>
+
 		<span id="pageInfo">第 1 頁</span>
 		<button id="nextBtn" class="page-btn" onclick="nextPage()">下一頁</button>
 	</div>
@@ -100,16 +108,12 @@
 		try {
 			const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=notice`);
 			const data = await res.json();
-			
 			const filtered = data.filter(i => String(i["標題"]).includes("公告"))
 								 .sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
 
-			// 先處理前 10 筆顯示 (漸進式渲染)
 			if (JSON.stringify(filtered) !== cache) {
 				allNotices = filtered;
 				updateUI();
-				
-				// 背景慢慢存入快取，不阻塞主線程
 				setTimeout(() => {
 					localStorage.setItem('cache_notices', JSON.stringify(filtered));
 				}, 100);
@@ -119,7 +123,19 @@
 
 	function updateUI() {
 		document.getElementById('totalCount').innerText = `共 ${allNotices.length} 筆`;
+		updateJumpSelect(); // 💡 每次更新資料都要重新計算總頁數
 		render();
+	}
+
+	// 💡 核心邏輯：動態生成跳頁選項
+	function updateJumpSelect() {
+		const select = document.getElementById('pageJump');
+		const maxPage = Math.ceil(allNotices.length / pageSize) || 1;
+		let options = "";
+		for (let i = 1; i <= maxPage; i++) {
+			options += `<option value="${i}" ${i === currentPage ? 'selected' : ''}>${i}</option>`;
+		}
+		select.innerHTML = options;
 	}
 
 	function render() {
@@ -139,17 +155,29 @@
 		}).join('');
 
 		const maxPage = Math.ceil(allNotices.length / pageSize) || 1;
-		document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${maxPage} 頁`;
+		document.getElementById('pageInfo').innerText = ` / ${maxPage} 頁`;
 		document.getElementById('prevBtn').disabled = currentPage === 1;
 		document.getElementById('nextBtn').disabled = end >= allNotices.length;
+		
+		// 確保下拉選單同步目前的頁碼
+		document.getElementById('pageJump').value = currentPage;
 	}
 
 	// 暴露函式至全域
 	window.changePageSize = () => {
 		pageSize = parseInt(document.getElementById('pageSize').value);
 		currentPage = 1;
+		updateJumpSelect(); // 每頁筆數變動，總頁數也會變
 		render();
 	};
+
+	window.jumpToPage = () => {
+		const select = document.getElementById('pageJump');
+		currentPage = parseInt(select.value);
+		render();
+		window.scrollTo(0, 0);
+	};
+
 	window.prevPage = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
 	window.nextPage = () => { if(currentPage * pageSize < allNotices.length) { currentPage++; render(); window.scrollTo(0,0); } };
 
