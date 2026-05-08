@@ -91,6 +91,16 @@ async function fetchRemoteData() {
             fetch(`${NOVEL_API_URL}${NOVEL_API_URL.includes('?') ? '&' : '?'}type=notice`).then(res => res.json()),
             fetch(`${SERVICE_API_URL}${SERVICE_API_URL.includes('?') ? '&' : '?'}type=service`).then(res => res.json())
         ]);
+        if (serviceRes.status === 'fulfilled') {
+            let newServices = serviceRes.value.filter(item => !String(item["標題"] || "").includes("公告"));
+
+            if (JSON.stringify(newServices) !== localStorage.getItem('cache_services')) {
+                allServices = newServices;
+                localStorage.setItem('cache_services', JSON.stringify(newServices));
+                renderServices(allServices);
+                console.log("🛠️ 服務項目 API 同步完成");
+            }
+        }
 
         if (noticeRes.status === 'fulfilled') {
             let newData = noticeRes.value.filter(item => String(item["標題"] || "").includes("公告"));
@@ -101,17 +111,6 @@ async function fetchRemoteData() {
                 localStorage.setItem('cache_notices', JSON.stringify(newData));
                 renderNotices();
                 console.log("📢 公告區 API 同步完成");
-            }
-        }
-
-        if (serviceRes.status === 'fulfilled') {
-            let newServices = serviceRes.value.filter(item => !String(item["標題"] || "").includes("公告"));
-
-            if (JSON.stringify(newServices) !== localStorage.getItem('cache_services')) {
-                allServices = newServices;
-                localStorage.setItem('cache_services', JSON.stringify(newServices));
-                renderServices(allServices);
-                console.log("🛠️ 服務項目 API 同步完成");
             }
         }
     } catch (e) {
