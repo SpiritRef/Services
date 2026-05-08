@@ -2,30 +2,59 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>常見問題 FAQ | 鬼磕頭</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>常見問題紀錄 | 鬼磕頭</title>
     <link rel="icon" href="../pic/GhostKowtow.jpg" type="image/jpeg">
     <link rel="stylesheet" href="../CSS/Services.css">
+    <link rel="stylesheet" href="../CSS/postFB.css">
     <style>
-        .faq-answer {
-            margin-top: 10px;
-            margin-left: 25px;
-            font-size: 0.95em;
-            color: #ccc;
-            line-height: 1.6;
-            display: none; /* 預設隱藏，點擊標題展開 */
+        /* 強制覆蓋背景，確保不是全白 */
+        body { background: #121212 !important; margin: 0; padding: 0; color: #eee; font-family: sans-serif; }
+        
+        .list-container { 
+            width: 95%; max-width: 850px; margin: 20px auto 100px auto; 
+            background: #1e1e1e; padding: 30px; border-radius: 12px; 
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5); box-sizing: border-box;
         }
-        .faq-item {
-            cursor: pointer;
-            padding: 15px;
-            border-bottom: 1px solid #333;
-            transition: background 0.3s;
+
+        h1 { border-bottom: 2px solid #ffc107; padding-bottom: 10px; font-size: 1.6rem; color: #ffc107; text-align: center; }
+
+        /* 返回按鈕樣式與 menu-item 同步 */
+        .back-btn-top { 
+            display: inline-flex; align-items: center; gap: 10px; padding: 10px 12px; 
+            border-radius: 8px; color: #ffc107; text-decoration: none; 
+            font-size: 0.95rem; font-weight: bold; margin-bottom: 20px; transition: 0.3s;
         }
-        .faq-item:hover { background: rgba(255, 193, 7, 0.05); }
-        .faq-question { font-weight: bold; color: #ffc107; display: flex; align-items: center; gap: 10px; }
-        .faq-item.active .faq-answer { display: block; }
-        .faq-item.active .faq-question::before { content: "▼"; font-size: 0.8em; }
-        .faq-question::before { content: "▶"; font-size: 0.8em; color: #666; }
+        .back-btn-top:hover { background: rgba(255, 193, 7, 0.1); }
+
+        /* 控制列 */
+        .controls { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin: 20px 0; background: #2a2a2a; padding: 15px; border-radius: 8px; 
+            font-size: 0.9rem; color: #bbb;
+        }
+
+        /* FAQ 內容樣式 */
+        .faq-item { padding: 25px 0; border-bottom: 1px solid #333; }
+        .question { color: #ffc107; font-size: 1.2rem; font-weight: bold; margin-bottom: 12px; display: flex; gap: 12px; }
+        .answer { color: #ccc; font-size: 1.05rem; line-height: 1.8; padding-left: 35px; white-space: pre-line; border-left: 3px solid #333; }
+
+        /* 分頁 */
+        .pagination { margin-top: 30px; display: flex; gap: 10px; justify-content: center; align-items: center; }
+        .page-btn { padding: 8px 16px; border: 1px solid #444; background: #2a2a2a; color: #fff; cursor: pointer; border-radius: 6px; }
+        .page-btn:hover:not(:disabled) { background: #ffc107; color: #000; }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* 選單圖示加大 */
+        #serviceIcon { font-size: 150%; line-height: 1; }
+
+        select { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 5px; border-radius: 4px; }
+
+        @media (max-width: 600px) {
+            .list-container { width: 100%; border-radius: 0; padding: 20px 15px; }
+            .controls { flex-direction: column; gap: 10px; }
+            .answer { padding-left: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -33,102 +62,129 @@
 <div class="expandable-menu-container" id="menuContainer">
     <div class="menu-content" id="menuContent"></div>
     <button class="floating-service-btn" id="serviceBtn" onclick="toggleMenu()">
-        <span id="serviceIcon" style="font-size: 150%;">☰</span>
+        <span id="serviceIcon">☰</span>
         <span id="serviceText">選單</span>
     </button>
 </div>
 
-<div class="container">
-    <header style="margin-bottom: 30px;">
-        <a href="../services/" class="back-btn-top" style="color:white; text-decoration:none; display:inline-flex; align-items:center; gap:10px; padding:10px; border-radius:8px;">
-            <span>⬅</span><span>返回服務主頁</span>
-        </a>
-        <h1 style="text-align: center; color: #ffc107; margin-top: 20px;">常見問題 FAQ</h1>
-    </header>
+<div class="list-container">
+    <a href="../services/" class="back-btn-top">
+        <span>⬅</span><span>返回服務頁面</span>
+    </a>
+    
+    <h1>常見問題 FAQ 紀錄</h1>
 
-    <section class="notice-board">
-        <div id="faq-list">
-            <p style="text-align: center; padding: 50px; color: #888;">正在感應靈界問答...</p>
+    <div class="controls">
+        <div>每頁：
+            <select id="pageSize" onchange="changePageSize()">
+                <option value="10">10 筆</option>
+                <option value="20" selected>20 筆</option>
+                <option value="50">50 筆</option>
+            </select>
         </div>
-    </section>
-</div>
+        <div id="totalCount">共 0 筆</div>
+    </div>
 
-<footer>
-    <p>&copy; 2026 鬼磕頭. All Rights Reserved.</p>
-</footer>
+    <div id="list-content">正在感應靈界問答...</div>
+
+    <div class="pagination">
+        <button id="prevBtn" class="page-btn" onclick="prevPage()">上一頁</button>
+        <span id="pageInfo">第 1 頁</span>
+        <button id="nextBtn" class="page-btn" onclick="nextPage()">下一頁</button>
+    </div>
+</div>
 
 <script type="module">
     import { getIni } from '../Javascript/API.js';
 
-    let SERVICE_API_URL = "";
-    let allFAQs = [];
-
+    // 💡 全域導覽功能 (修正選單不能用的問題)
     window.toggleMenu = function() {
         const menu = document.getElementById('menuContainer');
         if (menu) menu.classList.toggle('show-menu');
     };
 
-    async function initFAQ() {
-        // 1. 讀取快取
-        const cached = localStorage.getItem('cache_services');
-        if (cached) {
-            processAndRender(JSON.parse(cached));
+    let API_BASE = "";
+    let allFAQs = [];
+    let currentPage = 1;
+    let pageSize = 20;
+
+    async function init() {
+        // 1. 優先載入快取
+        const cache = localStorage.getItem('cache_services');
+        if (cache) {
+            allFAQs = filterFAQ(JSON.parse(cache));
+            updateUI();
         }
 
-        // 2. 獲取設定並同步
         try {
             const config = await getIni('../settings/Services.ini');
             if (config) {
                 // 渲染選單
                 if (config.MENU_DATA) renderMenu(config.MENU_DATA);
 
-                // 解析 API
-                SERVICE_API_URL = config.SERVICE_API_URL.startsWith("http") ? 
-                                 config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
-                
-                fetchRemoteFAQ();
+                // 解析 API 並同步
+                API_BASE = config.SERVICE_API_URL.startsWith("http") ? 
+                           config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
+                fetchRemoteData(cache);
             }
-        } catch (e) { console.error("FAQ 初始化失敗:", e); }
+        } catch (e) { console.error("初始化失敗", e); }
     }
 
-    async function fetchRemoteFAQ() {
+    function filterFAQ(data) {
+        const raw = Array.isArray(data) ? data : (data.services || []);
+        return raw.filter(i => String(i["分類"] || i["標題"] || "").includes("常見問題"));
+    }
+
+    async function fetchRemoteData(cache) {
         try {
-            const res = await fetch(`${SERVICE_API_URL}${SERVICE_API_URL.includes('?') ? '&' : '?'}type=service`);
-            if (!res.ok) return;
+            const res = await fetch(`${API_BASE}${API_BASE.includes('?') ? '&' : '?'}type=service`);
             const data = await res.json();
-            
-            if (JSON.stringify(data) !== localStorage.getItem('cache_services')) {
+            const filtered = filterFAQ(data);
+
+            if (JSON.stringify(filtered) !== JSON.stringify(filterFAQ(JSON.parse(cache || '[]')))) {
+                allFAQs = filtered;
                 localStorage.setItem('cache_services', JSON.stringify(data));
-                processAndRender(data);
+                updateUI();
             }
-        } catch (e) { console.error("FAQ 同步失敗:", e); }
+        } catch(e) { console.error("API 同步失敗"); }
     }
 
-    function processAndRender(data) {
-        // 篩選出標題含「問」的項目
-        allFAQs = data.filter(item => {
-            const title = String(item["服務名稱"] || item["標題"] || "");
-            return title.includes("問");
-        });
-        renderFAQ();
+    function updateUI() {
+        document.getElementById('totalCount').innerText = `共 ${allFAQs.length} 筆`;
+        render();
     }
 
-    function renderFAQ() {
-        const container = document.getElementById('faq-list');
-        if (!container) return;
-
+    function render() {
+        const contentBox = document.getElementById('list-content');
         if (allFAQs.length === 0) {
-            container.innerHTML = '<p style="text-align: center; padding: 50px;">目前暫無常見問題紀錄。</p>';
+            contentBox.innerHTML = '<div style="text-align:center; padding:50px; color:#888;">暫無紀錄。</div>';
             return;
         }
 
-        container.innerHTML = allFAQs.map(item => `
-            <div class="faq-item" onclick="this.classList.toggle('active')">
-                <div class="faq-question">Q: ${item["服務名稱"] || item["標題"]}</div>
-                <div class="faq-answer">A: ${item["服務介紹"] || item["貼文內容"] || item["內容"]}</div>
-            </div>
-        `).join('');
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pagedData = allFAQs.slice(start, end);
+
+        contentBox.innerHTML = pagedData.map((item, index) => {
+            const qNum = start + index + 1;
+            return `
+                <div class="faq-item">
+                    <div class="question"><span>Q${qNum}.</span><span>${item["分類"] || item["標題"]}</span></div>
+                    <div class="answer">${item["服務介紹"] || item["內容"] || "暫無回覆。"}</div>
+                </div>
+            `;
+        }).join('');
+
+        const maxPage = Math.ceil(allFAQs.length / pageSize) || 1;
+        document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${maxPage} 頁`;
+        document.getElementById('prevBtn').disabled = currentPage === 1;
+        document.getElementById('nextBtn').disabled = end >= allFAQs.length;
     }
+
+    // 分頁控制
+    window.changePageSize = () => { pageSize = parseInt(document.getElementById('pageSize').value); currentPage = 1; render(); };
+    window.prevPage = () => { if(currentPage > 1) { currentPage--; render(); window.scrollTo(0,0); } };
+    window.nextPage = () => { if(currentPage * pageSize < allFAQs.length) { currentPage++; render(); window.scrollTo(0,0); } };
 
     function renderMenu(menuData) {
         const menuContent = document.getElementById('menuContent');
@@ -139,7 +195,7 @@
         }).join('');
     }
 
-    window.addEventListener('DOMContentLoaded', initFAQ);
+    window.addEventListener('DOMContentLoaded', init);
 </script>
 
 </body>
