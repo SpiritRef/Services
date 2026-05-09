@@ -4,7 +4,7 @@ let NOVEL_API_URL = "";
 let SERVICE_API_URL = "";  
 let JsonDataPath = "";     
 let JsonServicePath = "";
-const iniPath = 'settings/Services.ini'; 
+const iniPath = 'https://spiritref.github.io/settings/global.ini'; 
 
 let allNotices = [];
 let allServices = [];
@@ -19,7 +19,7 @@ async function initApp() {
 
     try {
         const config = await getIni(iniPath);
-        
+        if (config.MENU_DATA) initMenu(config.MENU_DATA);
         if (config) {
             JsonDataPath = config.JsonData;
             JsonServicePath = config.JsonService;
