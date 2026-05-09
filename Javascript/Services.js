@@ -90,7 +90,7 @@ function processServiceData(data) {
     // 💡 任務 3：處理視覺紀錄 (分類：視覺紀錄)
     Promise.resolve().then(() => {
         allVisualRecords = data.filter(item => String(item["分類"] || "") === "視覺紀錄");
-        renderVisualRecords(allVisualRecords); // 新增的渲染函數
+        renderVisualRecords(allVisualRecords.slice(0, 6), allVisualRecords.length); // 新增的渲染函數
     });
 }
 
@@ -199,8 +199,8 @@ function renderFAQ() {
     }
     const displayList = allFAQs.slice(0, 5);
     content.innerHTML = displayList.map(item => {
-        const q = item["服務名稱"] || item["標題"] || "常見問題";
-        const a = item["服務介紹"] || item["貼文內容"] || item["內容"] || "暫無解答";
+        const q = item["標題"] || "常見問題";
+        const a = item["貼文內容"] || item["內容"] || "暫無解答";
         return `
             <div class="notice-item" style="display: block; margin-bottom: 15px;">
                 <div class="notice-text" style="font-weight: bold; color: #d4af37;">Q: ${q}</div>
@@ -222,24 +222,31 @@ function renderServices(data) {
     }
     container.innerHTML = data.map(item => `
         <div class="card">
-            <h3>${item["服務名稱"] || item["標題"] || '專業服務'}</h3>
-            <p>${item["服務介紹"] || item["貼文內容"] || '歡迎洽詢。'}</p>
+            <h3>${item["標題"] || '專業服務'}</h3>
+            <p>${item["貼文內容"] || '歡迎洽詢。'}</p>
         </div>
     `).join('');
 }
-function renderVisualRecords(data) {
+
+function renderVisualRecords(displayData, totalCount) {
     const container = document.getElementById('visual-records-container');
+    const btn = document.getElementById('all-visuals-btn'); // 抓取「顯示所有」按鈕
+    
     if (!container) return;
-    if (data.length === 0) {
+
+    // 如果沒資料的處理
+    if (displayData.length === 0) {
         container.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">暫無紀錄。</p>';
+        if (btn) btn.style.display = 'none';
         return;
     }
 
-    container.innerHTML = data.map(item => {
+    // 渲染卡片內容
+    container.innerHTML = displayData.map(item => {
         const videoUrl = item["連結"] || item["貼文連結"] || "";
         const embedUrl = getYouTubeEmbedUrl(videoUrl);
-        const title = item["服務名稱"] || item["標題"] || "影片紀錄";
-        const desc = item["服務介紹"] || item["貼文內容"] || "";
+        const title = item["標題"] || "影片紀錄";
+        const desc = item["貼文內容"] || "";
 
         return `
             <div class="card">
@@ -254,6 +261,12 @@ function renderVisualRecords(data) {
             </div>
         `;
     }).join('');
+
+    // 💡 關鍵：控制「顯示所有」按鈕
+    // 只有當總影片數大於 6 時，才顯示該按鈕
+    if (btn) {
+        btn.style.display = totalCount > 6 ? 'inline-block' : 'none';
+    }
 }
 function getYouTubeEmbedUrl(url) {
     if (!url) return null;
