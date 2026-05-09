@@ -16,6 +16,7 @@
 
     <!-- 3. CSS 連結 (保持原樣) -->
     <link rel="stylesheet" href="CSS/Services.css">
+	<link rel="stylesheet" href="https://spiritref.github.io/CSS/golbal.css">
 
     <!-- 4. Facebook / LINE 分享預覽設定 -->
     <meta property="og:title" content="鬼磕頭 | 靈異紀實．專業靈學服務">
@@ -42,7 +43,15 @@
 		<a href="../ghoststory/">靈異日誌</a>
 	</nav>
 </header>
-
+	
+<div class="expandable-menu-container" id="menuContainer">
+    <div class="menu-content" id="menuContent"></div>
+    <button class="floating-service-btn" id="serviceBtn" onclick="toggleMenu()">
+        <span id="serviceIcon">☰</span>
+        <span id="serviceText">選單</span>
+    </button>
+</div>
+	
 <div class="container">
 	<!-- 1. 個人簡介 -->
 	<section class="intro-section">
