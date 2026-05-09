@@ -17,7 +17,8 @@ let allFAQs = [];
 async function initApp() {
     // 💡 第一階段：立即載入快取
     loadCache();
-
+    Global.initGlobalHeader();
+    
     try {
         const config = await getIni(iniPath);
         if (config.MENU_DATA) Global.initMenu(config.MENU_DATA);
