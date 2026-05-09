@@ -9,7 +9,6 @@ body {
 	font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
 	line-height: 1.6; 
 	color: var(--text-color); 
-	background: var(--bg-color); 
 	background-color: var(--bg-color);
 	margin: 0; 
 	padding: 0; 
