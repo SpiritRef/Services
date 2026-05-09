@@ -117,7 +117,7 @@
         }
 
         try {
-            const config = await getIni('../settings/Services.ini');
+            const config = await getIni('https://spiritref.github.io/settings/global.ini');
             if (config) {
                 // 渲染選單
                 if (config.MENU_DATA) renderMenu(config.MENU_DATA);
