@@ -72,24 +72,24 @@ function loadCache() {
  * 核心邏輯：異步處理服務資料，達成「服務」與「FAQ」競爭渲染
  */
 function processServiceData(data) {
-    // 💡 任務 1：處理服務項目 (丟入 Microtask)
+    // 💡 任務 1：處理服務項目 (包含：服務項目)
     Promise.resolve().then(() => {
-        allServices = data.filter(item => {
-            const title = String(item["服務名稱"] || item["標題"] || "");
-            return !title.includes("公告") && !title.includes("問");
-        });
+        allServices = data.filter(item => String(item["分類"] || "") === "服務項目");
         renderServices(allServices);
         console.log("🛠️ 服務項目已渲染");
     });
 
-    // 💡 任務 2：處理 FAQ (丟入 Microtask)
+    // 💡 任務 2：處理 FAQ (分類：常見問題)
     Promise.resolve().then(() => {
-        allFAQs = data.filter(item => {
-            const title = String(item["分類"] || item["標題"] || "");
-            return title.includes("常見問題");
-        });
+        allFAQs = data.filter(item => String(item["分類"] || "") === "常見問題");
         renderFAQ();
         console.log("❓ FAQ 已渲染");
+    });
+    
+    // 💡 任務 3：處理視覺紀錄 (分類：視覺紀錄)
+    Promise.resolve().then(() => {
+        allVisualRecords = data.filter(item => String(item["分類"] || "") === "視覺紀錄");
+        renderVisualRecords(allVisualRecords); // 新增的渲染函數
     });
 }
 
@@ -225,6 +225,41 @@ function renderServices(data) {
             <p>${item["服務介紹"] || item["貼文內容"] || '歡迎洽詢。'}</p>
         </div>
     `).join('');
+}
+function renderVisualRecords(data) {
+    const container = document.getElementById('visual-records-container');
+    if (!container) return;
+    if (data.length === 0) {
+        container.innerHTML = '<p style="text-align: center; grid-column: 1/-1;">暫無紀錄。</p>';
+        return;
+    }
+
+    container.innerHTML = data.map(item => {
+        const videoUrl = item["連結"] || item["貼文連結"] || "";
+        const embedUrl = getYouTubeEmbedUrl(videoUrl);
+        const title = item["服務名稱"] || item["標題"] || "影片紀錄";
+        const desc = item["服務介紹"] || item["貼文內容"] || "";
+
+        return `
+            <div class="card">
+                ${embedUrl ? `
+                    <div class="video-container" style="margin-bottom:15px; border-radius:8px; overflow:hidden;">
+                        <iframe width="100%" height="200" src="${embedUrl}" 
+                            frameborder="0" allowfullscreen></iframe>
+                    </div>
+                ` : ''}
+                <h3>${title}</h3>
+                <p>${desc}</p>
+            </div>
+        `;
+    }).join('');
+}
+function getYouTubeEmbedUrl(url) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 }
 
 // 啟動應用程式
