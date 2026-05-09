@@ -3,15 +3,20 @@
 	--accent-color: #c0392b;  /* 神祕暗紅 */
 	--bg-color: #f7f7f7;
 	--text-color: #333;
+	--header-h: 70px;
 }
 body { 
 	font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
 	line-height: 1.6; 
 	color: var(--text-color); 
 	background: var(--bg-color); 
-	background-color: #f7f7f7;
+	background-color: var(--bg-color);
 	margin: 0; 
 	padding: 0; 
+}
+html {
+    scroll-behavior: smooth; /* 增加平滑捲動效果 */
+    scroll-padding-top: var(--header-h, 80px); /* 這裡的數值請根據您 header 的實際高度調整 */
 }
 header { 
 	background: #fff; 
@@ -24,13 +29,10 @@ header {
 	top: 0; 
 	z-index: 100; 
 }
-html {
-    scroll-behavior: smooth; /* 增加平滑捲動效果 */
-    scroll-padding-top: 80px; /* 這裡的數值請根據您 header 的實際高度調整 */
-}
-.logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary-color); }
+.logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; color: var(--primary-color); display: flex; align-items: center;}
+.logo img { height: 35px; margin-right: 10px; vertical-align: middle; }
 nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font-size: 0.9rem; }
-
+nav a:hover { color: var(--accent-color); }
 
 /* --- 公告區樣式優化 --- */
 .notice-board { background: #f9f9f9; border-left: 4px solid var(--accent-color); padding: 20px; margin-bottom: 40px; }
@@ -57,7 +59,7 @@ nav a { margin-left: 20px; text-decoration: none; color: var(--text-color); font
 .more-link:hover { text-decoration: underline; }
 /* 讓內容整體往上提 */
 .container { 
-	max-width: 1050px;
+	max-width: 1050px !important;
 	width: 95%;
     margin: 15px auto; 
     padding: 0 20px 40px 20px !important; 
