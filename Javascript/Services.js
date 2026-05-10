@@ -1,11 +1,11 @@
 import { getIni } from './API.js';
-import * as Global from 'https://spiritref.github.io/Javascript/global.js';
+import * as Global from '/Javascript/global.js';
 
 let NOVEL_API_URL = "";    
 let SERVICE_API_URL = "";  
 let JsonDataPath = "";     
 let JsonServicePath = "";
-const iniPath = 'https://spiritref.github.io/settings/global.ini'; 
+const iniPath = '/settings/global.ini'; 
 
 let allNotices = [];
 let allServices = [];
