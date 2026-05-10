@@ -33,7 +33,7 @@
         
         .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #f9f9f9; padding: 10px; border-radius: 5px; font-size: 0.9rem; }
 
-        /* 樣式對齊首頁 Q&A */
+        /* 樣式對齊首頁 Q&A 紅黑風格 */
         .notice-item { display: block; margin-bottom: 25px; border-bottom: 1px dotted #eee; padding-bottom: 15px; }
         .notice-item:last-child { border-bottom: none; }
 
@@ -92,15 +92,31 @@
     let allFAQs = [];
     let currentPage = 1;
     let pageSize = 10;
+    let SERVICE_API_URL = "";
     const iniPath = 'https://spiritref.github.io/settings/global.ini';
 
     async function init() {
+        // 1. 優先載入快取 (與 Services.js 邏輯同步)
+        const cached = localStorage.getItem('cache_services');
+        if (cached) {
+            processData(JSON.parse(cached));
+        }
+
         try {
             const config = await getIni(iniPath);
             if (config) {
                 if (config.MENU_DATA) Global.initMenu(config.MENU_DATA);
-                // 讀取數據源 (修正路徑)
-                await fetchStaticJson("../../Data/Notices.json");
+                
+                // 2. 靜態補位 (若快取無資料，則讀取靜態 JSON)
+                if (allFAQs.length === 0 && config.JsonService) {
+                    await fetchStaticJson("../../" + config.JsonService.replace("../",""));
+                }
+
+                // 3. 遠端同步 (取得加密或明碼 API)
+                if (config.SERVICE_API_URL) {
+                    SERVICE_API_URL = config.SERVICE_API_URL.startsWith("http") ? config.SERVICE_API_URL : atob(config.SERVICE_API_URL);
+                    fetchRemoteData();
+                }
             }
         } catch (e) { console.error("初始化失敗", e); }
     }
@@ -112,15 +128,29 @@
                 const data = await res.json();
                 processData(data);
             }
-        } catch (e) { console.warn("讀取失敗:", e); }
+        } catch (e) { console.warn("靜態讀取失敗:", e); }
+    }
+
+    async function fetchRemoteData() {
+        try {
+            const res = await fetch(`${SERVICE_API_URL}${SERVICE_API_URL.includes('?') ? '&' : '?'}type=service`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            // 若資料有更新，存入快取並重新渲染
+            if (JSON.stringify(data) !== localStorage.getItem('cache_services')) {
+                localStorage.setItem('cache_services', JSON.stringify(data));
+                processData(data);
+            }
+        } catch (e) { console.error("API 同步失敗:", e); }
     }
 
     function processData(data) {
-        // 【核心修正】只顯示常見問題，排除所有帶有【】文章與公告
-        allFAQs = data.filter(item => {
-            const title = item["標題"] || "";
-            return !title.includes("【") && !title.includes("】") && !title.includes("公告");
-        }).sort((a,b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
+        if (!data || !Array.isArray(data)) return;
+
+        // 【核心篩選】只抓取「分類」為「常見問題」的資料，並按日期排序
+        allFAQs = data.filter(item => String(item["分類"] || "") === "常見問題")
+                      .sort((a, b) => new Date(b["發佈日期"]) - new Date(a["發佈日期"]));
 
         updateUI();
     }
@@ -136,15 +166,15 @@
         const end = start + pageSize;
         const pagedData = allFAQs.slice(start, end);
 
-        if (pagedData.length === 0) {
+        if (allFAQs.length === 0) {
             listContent.innerHTML = "目前暫無符合條件的常見問題項目。";
             return;
         }
 
         listContent.innerHTML = pagedData.map(item => {
-            const q = item["標題"] || "常見問題";
-            const a = item["貼文內容"] || item["內容"] || "暫無解答";
-            const date = item["發佈日期"] ? new Date(item["發佈日期"]).toLocaleDateString() : "";
+            const q = item["標題"] || "常見問題項目";
+            const a = item["貼文內容"] || item["內容"] || "暫無內容";
+            const date = item["發佈日期"] ? new Date(item["發佈日期"]).toLocaleDateString() : "近期";
 
             return `
                 <div class="notice-item">
