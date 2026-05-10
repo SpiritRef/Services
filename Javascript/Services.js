@@ -198,7 +198,7 @@ function renderFAQ() {
         return;
     }
     const displayList = allFAQs.slice(0, 5);
-    content.innerHTML = displayList.map(item => {
+    content.innerHTML = displayList.map((item, index) => {
         const q = item["標題"] || "常見問題";
         const a = item["貼文內容"] || item["內容"] || "暫無解答";
         const qNumber = index + 1;
